@@ -1,0 +1,14 @@
+services:
+  bytetrack:
+    build: .
+    container_name: bytetrack
+    working_dir: /app
+    volumes:
+      - .:/app
+    command: python track.py
+    environment:
+      - DISPLAY=${DISPLAY}
+    devices:
+      - /dev/video0:/dev/video0   
+    network_mode: host            #
+    tty: true
