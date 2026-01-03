@@ -7,18 +7,6 @@ services:
     networks:
       - dev
 
-  restreamer:
-    image: datarhei/restreamer
-    container_name: restreamer
-    restart: unless-stopped
-    ports:
-      - "8081:8080"   # UI Web
-      - "8533:8554"   # RTSP
-    volumes:
-      - restreamer-data:/core/data
-    networks:
-      - dev
-  
   ollama:
     image: ollama/ollama:latest
     container_name: ollama
@@ -32,25 +20,47 @@ services:
     container_name: frigate
     image: ghcr.io/blakeblackshear/frigate:stable
     restart: unless-stopped
-    privileged: true
+    privileged: true 
     shm_size: "512mb"
-
+    devices:
+      - /dev/bus/usb:/dev/bus/usb  
+    ports:
+      - "5000:5000"   
+      - "1935:1935"  
     volumes:
       - ./config:/config
       - ./media:/media
-      - /etc/localtime:/etc/localtime:ro
-
-    ports:
-      - "5000:5000"   # Web UI
-      - "8554:8554"   # RTSP restream
-      - "8555:8555/tcp"
-      - "8555:8555/udp"
-      - "1935:1936"   # RTMP
-      - "8080:8080"   # RTSP
-
-
     environment:
-      FRIGATE_RTSP_PASSWORD: strongpassword
+      - FRIGATE_RTSP_PASSWORD=tu_password 
+    networks:
+      - dev
+  
+  rtsp-server:
+    image: bluenviron/mediamtx:latest
+    container_name: rtsp-server
+    restart: unless-stopped
+    ports:
+      - "8554:8554"   # RTSP
+      - "1936:1935"   # RTMP
+      - "8888:8888"   # HLS
+      - "8889:8889"   # WebRTC HTTP
+      - "8189:8189/udp" # WebRTC ICE
+      - "8890:8890/udp" # SRT
+    
+
+  ffmpeg-stream:
+    image: jrottenberg/ffmpeg:4.3-alpine
+    container_name: ffmpeg-stream
+    restart: unless-stopped
+    depends_on:
+      - rtsp-server
+    volumes:
+      - ./videos:/videos:ro
+    command: >
+      -re -stream_loop -1
+      -i "/videos/car accident good camera1080p.mp4"
+      -c:v copy -c:a aac
+      -f rtsp rtsp://rtsp-server:8554/live
 
 volumes:
   restreamer-data:

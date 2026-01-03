@@ -5,12 +5,12 @@ import time
 import json
 import re
 
-OLLAMA_URL = "http://10.0.0.136:11434/api/generate"
-MODEL = "llava:latest"
+OLLAMA_URL = "http://ollama:11434/api/generate"
+MODEL = "llava"
 
-STREAM_URL = "http://restreamer:8080/memfs/d630a471-2e21-4813-8257-d27fba3e3112.m3u8"
+STREAM_URL = "rtsp://10.0.0.136:8554/live"
 
-ANALYSIS_INTERVAL = 5  # seconds
+ANALYSIS_INTERVAL = 5
 
 PROMPT = """
 You are a computer vision system specialized in traffic incident detection.
