@@ -6,7 +6,7 @@ const client = mqtt.connect(brokerUrl)
 client.on('connect', () => {
   console.log('Connected to MQTT broker!')
 
-  const topic = 'frigate/events' 
+  const topic = 'frigate/events'
   client.subscribe(topic, (err) => {
     if (err) {
       console.error('Failed to subscribe:', err)
