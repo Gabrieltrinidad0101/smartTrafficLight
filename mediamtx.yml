@@ -1,0 +1,7 @@
+server:
+  rtspPort: 8554
+
+paths:
+  live:
+    publishUser: ""
+    publishPass: ""

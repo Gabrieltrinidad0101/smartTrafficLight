@@ -1,0 +1,39 @@
+mqtt:
+  enabled: true
+  host: mqtt   # can be IP or hostname
+  port: 1883        # default MQTT port
+
+version: 0.16-0
+
+lpr:
+  enabled: true
+  model_size: small
+  debug_save_plates: true
+
+
+cameras:
+  LicensePlateRecognition:
+    enabled: true
+    type: lpr
+    ffmpeg:
+      inputs:
+        - path: rtsp://10.0.0.137:8554/live
+          roles:
+            - detect
+    detect:
+      enabled: true
+      width: 1920
+      height: 1080
+      fps: 10
+      min_initialized: 1
+    review:
+      detections:
+        labels:
+          - license_plate
+    notifications:
+      enabled: true
+detect:
+  enabled: true
+notifications:
+  enabled: false
+  email: gabrielqwes123@gmail.com

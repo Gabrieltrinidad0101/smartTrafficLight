@@ -1,0 +1,43 @@
+./homeassistant
+# --- Frigate runtime ---
+/media/
+/recordings/
+/clips/
+/exports/
+/snapshots/
+/cache/
+/tmp/
+*.onnx
+/config/*.pem
+.jwt_secret
+*.db
+# --- Database ---
+frigate.db
+frigate.db-shm
+frigate.db-wal
+
+# --- Logs ---
+*.log
+logs/
+
+# --- Secrets ---
+.env
+.env.*
+secrets.yaml
+
+# --- OS / editor junk ---
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+.vscode/
+.idea/
+
+# --- Python (si usas scripts extras) ---
+__pycache__/
+*.pyc
+.venv/
+
+# --- Docker ---
+docker-compose.override.yml
+/videos

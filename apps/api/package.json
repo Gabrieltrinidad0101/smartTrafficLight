@@ -1,0 +1,13 @@
+{
+  "name": "lpr-api",
+  "version": "1.0.0",
+  "description": "API to receive Frigate LPR webhooks",
+  "main": "main.js",
+  "scripts": {
+    "start": "node main.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "mqtt": "^5.0.0"
+  }
+}

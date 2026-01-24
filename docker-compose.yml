@@ -1,0 +1,126 @@
+services:
+  app:
+    build: .
+    container_name: app
+    volumes:
+      - ./app:/app
+    networks:
+      - dev
+
+  mqtt:
+    image: eclipse-mosquitto:2.0
+    container_name: mqtt
+    restart: unless-stopped
+    ports:
+      - "1883:1883"    # MQTT
+      - "8883:8883"    # MQTTS (secure)
+      - "9001:9001"    # WebSockets
+    networks:
+      - dev
+    volumes:
+      - ./mosquitto/config:/mosquitto/config
+      - ./mosquitto/data:/mosquitto/data
+      - ./mosquitto/log:/mosquitto/log
+
+  api:
+    build:
+      context: ./apps/api
+    container_name: api
+    depends_on:
+      - mqtt
+    volumes:
+      - ./apps/api:/app
+      - node_modules:/app/node_modules
+    networks:
+      - dev
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama
+    ports:
+      - "11434:11434"
+    restart: unless-stopped
+    networks:
+      - dev
+
+  frigate:
+    container_name: frigate
+    image: ghcr.io/blakeblackshear/frigate:stable
+    restart: unless-stopped
+    privileged: true
+    shm_size: "512mb"
+    devices:
+      - /dev/bus/usb:/dev/bus/usb
+    ports:
+      - "5000:5000"
+      - "1935:1935"
+    volumes:
+      - ./config:/config
+      - ./media:/media
+    depends_on:
+      - mqtt
+    environment:
+      - FRIGATE_RTSP_PASSWORD=tu_password
+      - MQTT_HOST=mqtt
+      - MQTT_PORT=1883
+    networks:
+      - dev
+
+  # homeassistant:
+  #   container_name: homeassistant
+  #   image: "ghcr.io/home-assistant/home-assistant:stable"
+  #   volumes:
+  #     - ./homeassistant:/config
+  #     - /etc/localtime:/etc/localtime:ro
+  #     - /run/dbus:/run/dbus:ro
+  #   restart: unless-stopped
+  #   ports:
+  #     - "8123:8123"
+  #   networks:
+  #     - dev
+  #   environment:
+  #     TZ: Europe/Amsterdam
+
+  rtsp-server:
+    image: bluenviron/mediamtx:latest
+    container_name: rtsp-server
+    restart: unless-stopped
+    ports:
+      - "8554:8554" # RTSP
+      - "1936:1935" # RTMP
+      - "8888:8888" # HLS
+      - "8889:8889" # WebRTC HTTP
+      - "8189:8189/udp" # WebRTC ICE
+      - "8890:8890/udp" # SRT
+
+  ffmpeg-stream:
+    image: jrottenberg/ffmpeg:4.3-alpine
+    container_name: ffmpeg-stream
+    restart: unless-stopped
+    depends_on:
+      - rtsp-server
+    volumes:
+      - ./videos:/videos:ro
+    command: >
+      -re -stream_loop -1
+      -i "/videos/cars number plate.mp4"
+      -c:v copy -c:a aac
+      -f rtsp rtsp://rtsp-server:8554/live
+
+  # openalpr:
+  #   image: openalpr/openalpr
+  #   container_name: openalpr
+  #   ports:
+  #     - "5010:5000"
+  #   restart: unless-stopped
+  #   environment:
+  #     - ALPR_RUNTIME=docker
+  #   networks:
+  #     - dev
+
+volumes:
+  restreamer-data:
+  node_modules:
+networks:
+  dev:
+    driver: bridge
