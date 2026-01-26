@@ -1,12 +1,4 @@
 services:
-  app:
-    build: .
-    container_name: app
-    volumes:
-      - ./app:/app
-    networks:
-      - dev
-
   mqtt:
     image: eclipse-mosquitto:2.0
     container_name: mqtt
@@ -43,28 +35,28 @@ services:
     networks:
       - dev
 
-  frigate:
-    container_name: frigate
-    image: ghcr.io/blakeblackshear/frigate:stable
-    restart: unless-stopped
-    privileged: true
-    shm_size: "512mb"
-    devices:
-      - /dev/bus/usb:/dev/bus/usb
-    ports:
-      - "5000:5000"
-      - "1935:1935"
-    volumes:
-      - ./config:/config
-      - ./media:/media
-    depends_on:
-      - mqtt
-    environment:
-      - FRIGATE_RTSP_PASSWORD=tu_password
-      - MQTT_HOST=mqtt
-      - MQTT_PORT=1883
-    networks:
-      - dev
+  # frigate:
+  #   container_name: frigate
+  #   image: ghcr.io/blakeblackshear/frigate:stable
+  #   restart: unless-stopped
+  #   privileged: true
+  #   shm_size: "512mb"
+  #   devices:
+  #     - /dev/bus/usb:/dev/bus/usb
+  #   ports:
+  #     - "5000:5000"
+  #     - "1935:1935"
+  #   volumes:
+  #     - ./config:/config
+  #     - ./media:/media
+  #   depends_on:
+  #     - mqtt
+  #   environment:
+  #     - FRIGATE_RTSP_PASSWORD=tu_password
+  #     - MQTT_HOST=mqtt
+  #     - MQTT_PORT=1883
+  #   networks:
+  #     - dev
 
   # homeassistant:
   #   container_name: homeassistant
@@ -105,18 +97,60 @@ services:
       -re -stream_loop -1
       -i "/videos/cars number plate.mp4"
       -c:v copy -c:a aac
-      -f rtsp rtsp://rtsp-server:8554/live
+      -f rtsp rtsp://rtsp-server:8554/numberplate
+  
+  ffmpeg-strea2:
+    image: jrottenberg/ffmpeg:4.3-alpine
+    container_name: ffmpeg-stream2
+    restart: unless-stopped
+    depends_on:
+      - rtsp-server
+    volumes:
+      - ./videos:/videos:ro
+    command: >
+      -re -stream_loop -1
+      -i "/videos/car accident good camera1080p.mp4"
+      -c:v copy -c:a aac
+      -f rtsp rtsp://rtsp-server:8554/accident
 
-  # openalpr:
-  #   image: openalpr/openalpr
-  #   container_name: openalpr
-  #   ports:
-  #     - "5010:5000"
+  ffmpeg-strea3:
+    image: jrottenberg/ffmpeg:4.3-alpine
+    container_name: ffmpeg-strea3
+    restart: unless-stopped
+    depends_on:
+      - rtsp-server
+    volumes:
+      - ./videos:/videos:ro
+    command: >
+      -re -stream_loop -1
+      -i "/videos/person walking2.mp4"
+      -c:v copy -c:a aac
+      -f rtsp rtsp://rtsp-server:8554/personWalking
+
+
+  # traffic-detector:
+  #   build: ./apps/ia
+  #   container_name: traffic-detector
   #   restart: unless-stopped
   #   environment:
-  #     - ALPR_RUNTIME=docker
+  #     - OLLAMA_URL=http://ollama:11434/api/generate
+  #     - MODEL=llava
+  #     - RTSP_URL=rtsp://10.0.0.137:8554/accident
+  #     - ANALYSIS_INTERVAL=5
+  #     - PORT=3000
+  #   ports:
+  #     - "3000:3000"  # Para health checks y métricas
   #   networks:
   #     - dev
+  #   depends_on:
+  #     - ollama
+  #   volumes:
+  #     - ./logs:/app/logs  # Opcional: montar logs
+  #   logging:
+  #     driver: "json-file"
+  #     options:
+  #       max-size: "10m"
+  #       max-file: "3"
 
 volumes:
   restreamer-data:

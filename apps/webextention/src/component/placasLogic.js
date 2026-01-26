@@ -1,7 +1,7 @@
 var placasLogic = {
     state: {
         placas: [
-            { id: 1, number: "ABC-123", whatsapps: ["+123456789"] }
+            { id: 1, number: "ABC-123", description: "Test Plate", whatsapps: ["+123456789"] }
         ]
     },
 
@@ -14,6 +14,12 @@ var placasLogic = {
         const root = document.getElementById('placas-view-root');
         if (!root) return;
 
+        // Modal elements
+        const modal = document.getElementById('add-placa-modal');
+        const form = document.getElementById('add-placa-form');
+        const cancelBtn = document.getElementById('btn-cancel-add');
+        const overlay = document.getElementById('modal-overlay');
+
         // Prevent multiple attachments
         if (root.dataset.listenersAttached) return;
         root.dataset.listenersAttached = "true";
@@ -24,7 +30,7 @@ var placasLogic = {
 
             // Global Add Button
             if (target.id === 'btn-add-placa') {
-                this.addPlaca();
+                this.openAddModal();
                 return;
             }
 
@@ -39,6 +45,17 @@ var placasLogic = {
             if (action === 'edit-whatsapp') this.editWhatsapp(id, index);
             if (action === 'delete-whatsapp') this.deleteWhatsapp(id, index);
         });
+
+        // Modal Listeners
+        if (cancelBtn) cancelBtn.addEventListener('click', () => this.closeAddModal());
+        if (overlay) overlay.addEventListener('click', () => this.closeAddModal());
+
+        if (form) {
+            form.addEventListener('submit', (e) => {
+                e.preventDefault();
+                this.handlePlacaSubmit();
+            });
+        }
     },
 
     render: function () {
@@ -48,7 +65,10 @@ var placasLogic = {
         container.innerHTML = this.state.placas.map(placa => `
             <div class="bg-gray-100 border border-gray-200 rounded-lg p-4 mb-4 shadow-sm">
                 <div class="flex items-center justify-between mb-3">
-                    <h3 class="text-xl font-bold text-gray-900">${placa.number}</h3>
+                    <div>
+                        <h3 class="text-xl font-bold text-gray-900">${placa.number}</h3>
+                        ${placa.description ? `<p class="text-sm text-gray-600 mt-1">${placa.description}</p>` : ''}
+                    </div>
                     <div class="flex gap-2">
                         <button data-action="edit-placa" data-id="${placa.id}" class="p-2 text-blue-600 hover:bg-blue-100 rounded">
                             <svg class="w-5 h-5 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
@@ -85,16 +105,55 @@ var placasLogic = {
         `).join('');
     },
 
-    addPlaca: function () {
-        const number = prompt("Enter Plate Number:");
-        if (number) {
-            this.state.placas.push({
-                id: Date.now(),
-                number: number,
-                whatsapps: []
+    openAddModal: function () {
+        const modal = document.getElementById('add-placa-modal');
+        if (modal) modal.classList.remove('hidden');
+    },
+
+    closeAddModal: function () {
+        const modal = document.getElementById('add-placa-modal');
+        const form = document.getElementById('add-placa-form');
+        if (modal) modal.classList.add('hidden');
+        if (form) form.reset();
+    },
+
+    handlePlacaSubmit: async function () {
+        const numberInput = document.getElementById('placa-number');
+        const descInput = document.getElementById('placa-description');
+
+        const data = {
+            id: Date.now(), // Generate temporary ID
+            number: numberInput.value,
+            description: descInput.value,
+            whatsapps: []
+        };
+
+        // Send to API
+        try {
+            const response = await fetch('http://localhost:3000/placas', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data),
             });
-            this.render();
+
+            if (!response.ok) {
+                console.error('Failed to send data to API');
+                // Optional: Show error to user
+            } else {
+                console.log('Data sent successfully');
+            }
+        } catch (error) {
+            console.error('Error sending data:', error);
         }
+
+        // Update local state (Optimistic update or waiting for response?)
+        // For now, we'll update locally regardless of API success to keep UI responsive,
+        // but in production might want to handle errors better.
+        this.state.placas.push(data);
+        this.render();
+        this.closeAddModal();
     },
 
     deletePlaca: function (id) {
