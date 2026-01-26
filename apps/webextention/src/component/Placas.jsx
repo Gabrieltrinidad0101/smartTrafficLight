@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { createRoot } from 'react-dom/client';
 
 const Placas = () => {
     const [placas, setPlacas] = useState([
         { id: 1, number: "ABC-123", description: "Test Plate", whatsapps: ["+123456789"] }
     ]);
-    const [isModalOpen, setIsModalOpen] = useState(false);
+    const modalRef = useRef(null);
     const [newPlacaNumber, setNewPlacaNumber] = useState('');
     const [newPlacaDescription, setNewPlacaDescription] = useState('');
 
@@ -35,8 +35,16 @@ const Placas = () => {
         closeModal();
     };
 
+    const openModal = () => {
+        if (modalRef.current) {
+            modalRef.current.showModal();
+        }
+    };
+
     const closeModal = () => {
-        setIsModalOpen(false);
+        if (modalRef.current) {
+            modalRef.current.close();
+        }
         setNewPlacaNumber('');
         setNewPlacaDescription('');
     };
@@ -108,7 +116,7 @@ const Placas = () => {
                         <p className="text-gray-600 mt-1">Manage detected license plates and notification settings</p>
                     </div>
                     <button
-                        onClick={() => setIsModalOpen(true)}
+                        onClick={openModal}
                         className="bg-blue-600 hover:bg-blue-700 text-gray px-4 py-2 rounded-lg flex items-center gap-2 font-medium transition-colors"
                     >
                         <svg className="w-5 h-5 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -163,58 +171,48 @@ const Placas = () => {
                 </div>
             </div>
 
-            {isModalOpen && (
-                <div className="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-                    <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-                        <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true" onClick={closeModal}></div>
-
-                        <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-
-                        <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
-                            <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-                                <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4" id="modal-title">Add New Placa</h3>
-                                <form onSubmit={handleAddPlaca}>
-                                    <div className="mb-4">
-                                        <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="placa-number">
-                                            Placa Number
-                                        </label>
-                                        <input
-                                            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                            id="placa-number"
-                                            type="text"
-                                            placeholder="Enter plate number"
-                                            required
-                                            value={newPlacaNumber}
-                                            onChange={(e) => setNewPlacaNumber(e.target.value)}
-                                        />
-                                    </div>
-                                    <div className="mb-6">
-                                        <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="placa-description">
-                                            Description
-                                        </label>
-                                        <textarea
-                                            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                            id="placa-description"
-                                            rows="3"
-                                            placeholder="Enter description"
-                                            value={newPlacaDescription}
-                                            onChange={(e) => setNewPlacaDescription(e.target.value)}
-                                        ></textarea>
-                                    </div>
-                                    <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse -mx-6 -mb-6 mt-4">
-                                        <button type="submit" className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm">
-                                            Save
-                                        </button>
-                                        <button type="button" onClick={closeModal} className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
-                                            Cancel
-                                        </button>
-                                    </div>
-                                </form>
-                            </div>
+            <dialog ref={modalRef} width="50%" className="rounded-lg shadow-xl backdrop:bg-gray-500/75 p-0 sm:max-w-lg w-full" style={{ width: '50%' }}>
+                <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                    <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4" id="modal-title">Add New Placa</h3>
+                    <form onSubmit={handleAddPlaca}>
+                        <div className="mb-4">
+                            <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="placa-number">
+                                Placa Number
+                            </label>
+                            <input
+                                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                id="placa-number"
+                                type="text"
+                                placeholder="Enter plate number"
+                                required
+                                value={newPlacaNumber}
+                                onChange={(e) => setNewPlacaNumber(e.target.value)}
+                            />
                         </div>
-                    </div>
+                        <div className="mb-6">
+                            <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="placa-description">
+                                Description
+                            </label>
+                            <textarea
+                                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                id="placa-description"
+                                rows="3"
+                                placeholder="Enter description"
+                                value={newPlacaDescription}
+                                onChange={(e) => setNewPlacaDescription(e.target.value)}
+                            ></textarea>
+                        </div>
+                        <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse -mx-6 -mb-6 mt-4">
+                            <button type="submit" className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm">
+                                Save
+                            </button>
+                            <button type="button" onClick={closeModal} className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                                Cancel
+                            </button>
+                        </div>
+                    </form>
                 </div>
-            )}
+            </dialog>
         </div>
     );
 };
