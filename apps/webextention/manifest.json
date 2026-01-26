@@ -18,9 +18,7 @@
         "<all_urls>"
       ],
       "js": [
-        "src/component/menuButton.js",
-        "src/component/placasLogic.js",
-        "content.js"
+        "./dist/content.js"
       ]
     }
   ],
