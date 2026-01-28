@@ -1,10 +1,17 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { createRoot } from 'react-dom/client';
+import React, { useState, useRef } from 'react';
+import { usePlacas } from '../hooks/usePlacas';
 
 const Placas = () => {
-    const [placas, setPlacas] = useState([
-        { id: 1, number: "ABC-123", description: "Test Plate", whatsapps: ["+123456789"] }
-    ]);
+    const {
+        placas,
+        addPlaca,
+        updatePlaca,
+        deletePlaca,
+        addWhatsapp,
+        editWhatsapp,
+        deleteWhatsapp
+    } = usePlacas();
+
     const modalRef = useRef(null);
     const [newPlacaNumber, setNewPlacaNumber] = useState('');
     const [newPlacaDescription, setNewPlacaDescription] = useState('');
@@ -12,27 +19,15 @@ const Placas = () => {
     const handleAddPlaca = async (e) => {
         e.preventDefault();
         const data = {
-            id: Date.now(),
             number: newPlacaNumber,
             description: newPlacaDescription,
             whatsapps: []
         };
 
-        try {
-            const response = await fetch('http://localhost:3000/placas', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data),
-            });
-            if (response.ok) {
-                console.log('Data sent successfully');
-            }
-        } catch (error) {
-            console.error('Error sending data:', error);
+        const success = await addPlaca(data);
+        if (success) {
+            closeModal();
         }
-
-        setPlacas([...placas, data]);
-        closeModal();
     };
 
     const openModal = () => {
@@ -49,61 +44,24 @@ const Placas = () => {
         setNewPlacaDescription('');
     };
 
-    const deletePlaca = (id) => {
-        if (confirm("Are you sure?")) {
-            setPlacas(placas.filter(p => p.id !== id));
+    const handleEditPlaca = (id, currentNumber) => {
+        const newNumber = prompt("Edit Plate Number:", currentNumber);
+        if (newNumber && newNumber !== currentNumber) {
+            updatePlaca(id, { number: newNumber });
         }
     };
 
-    const editPlaca = (id) => {
-        const placa = placas.find(p => p.id === id);
-        if (placa) {
-            const newNumber = prompt("Edit Plate Number:", placa.number);
-            if (newNumber) {
-                setPlacas(placas.map(p => p.id === id ? { ...p, number: newNumber } : p));
-            }
-        }
-    };
-
-    const addWhatsapp = (id) => {
+    const handleAddWhatsapp = (id) => {
         const number = prompt("Enter WhatsApp Number:");
         if (number) {
-            setPlacas(placas.map(p => {
-                if (p.id === id) {
-                    return { ...p, whatsapps: [...p.whatsapps, number] };
-                }
-                return p;
-            }));
+            addWhatsapp(id, number);
         }
     };
 
-    const editWhatsapp = (placaId, index) => {
-        const placa = placas.find(p => p.id === placaId);
-        if (placa) {
-            const newNumber = prompt("Edit WhatsApp Number:", placa.whatsapps[index]);
-            if (newNumber) {
-                setPlacas(placas.map(p => {
-                    if (p.id === placaId) {
-                        const newWhatsapps = [...p.whatsapps];
-                        newWhatsapps[index] = newNumber;
-                        return { ...p, whatsapps: newWhatsapps };
-                    }
-                    return p;
-                }));
-            }
-        }
-    };
-
-    const deleteWhatsapp = (placaId, index) => {
-        if (confirm("Delete this number?")) {
-            setPlacas(placas.map(p => {
-                if (p.id === placaId) {
-                    const newWhatsapps = [...p.whatsapps];
-                    newWhatsapps.splice(index, 1);
-                    return { ...p, whatsapps: newWhatsapps };
-                }
-                return p;
-            }));
+    const handleEditWhatsapp = (id, index, currentNumber) => {
+        const newNumber = prompt("Edit WhatsApp Number:", currentNumber);
+        if (newNumber && newNumber !== currentNumber) {
+            editWhatsapp(id, index, newNumber);
         }
     };
 
@@ -117,7 +75,7 @@ const Placas = () => {
                     </div>
                     <button
                         onClick={openModal}
-                        className="bg-blue-600 hover:bg-blue-700 text-gray px-4 py-2 rounded-lg flex items-center gap-2 font-medium transition-colors"
+                        className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 font-medium transition-colors"
                     >
                         <svg className="w-5 h-5 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"></path>
@@ -135,7 +93,7 @@ const Placas = () => {
                                     {placa.description && <p className="text-sm text-gray-600 mt-1">{placa.description}</p>}
                                 </div>
                                 <div className="flex gap-2">
-                                    <button onClick={() => editPlaca(placa.id)} className="p-2 text-blue-600 hover:bg-blue-100 rounded">
+                                    <button onClick={() => handleEditPlaca(placa.id, placa.number)} className="p-2 text-blue-600 hover:bg-blue-100 rounded">
                                         <svg className="w-5 h-5 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
                                     </button>
                                     <button onClick={() => deletePlaca(placa.id)} className="p-2 text-red-600 hover:bg-red-100 rounded">
@@ -147,16 +105,16 @@ const Placas = () => {
                             <div className="space-y-2">
                                 <div className="flex items-center justify-between text-sm text-gray-600 mb-2">
                                     <span>WhatsApp Numbers</span>
-                                    <button onClick={() => addWhatsapp(placa.id)} className="text-xs text-blue-600 hover:text-blue-800 flex items-center gap-1 font-semibold">
+                                    <button onClick={() => handleAddWhatsapp(placa.id)} className="text-xs text-blue-600 hover:text-blue-800 flex items-center gap-1 font-semibold">
                                         <svg className="w-3 h-3 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"></path></svg>
                                         Add Number
                                     </button>
                                 </div>
-                                {placa.whatsapps.map((wa, idx) => (
+                                {placa.whatsapps && placa.whatsapps.map((wa, idx) => (
                                     <div key={idx} className="flex items-center justify-between bg-white border border-gray-200 rounded px-3 py-2 text-sm text-gray-800">
                                         <span>{wa}</span>
                                         <div className="flex gap-2">
-                                            <button onClick={() => editWhatsapp(placa.id, idx)} className="text-gray-500 hover:text-blue-600">
+                                            <button onClick={() => handleEditWhatsapp(placa.id, idx, wa)} className="text-gray-500 hover:text-blue-600">
                                                 <svg className="w-4 h-4 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
                                             </button>
                                             <button onClick={() => deleteWhatsapp(placa.id, idx)} className="text-gray-500 hover:text-red-600">
@@ -171,7 +129,7 @@ const Placas = () => {
                 </div>
             </div>
 
-            <dialog ref={modalRef} width="50%" className="rounded-lg shadow-xl backdrop:bg-gray-500/75 p-0 sm:max-w-lg w-full" style={{ width: '50%' }}>
+            <dialog ref={modalRef} className="rounded-lg shadow-xl backdrop:bg-gray-500/75 p-0 sm:max-w-lg w-full" style={{ width: '50%' }}>
                 <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
                     <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4" id="modal-title">Add New Placa</h3>
                     <form onSubmit={handleAddPlaca}>

@@ -45,3 +45,4 @@ docker-compose.override.yml
 
 # node
 node_modules
+apps/traffic-accident-detection/weights

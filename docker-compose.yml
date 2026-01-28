@@ -13,6 +13,15 @@ services:
       - ./mosquitto/config:/mosquitto/config
       - ./mosquitto/data:/mosquitto/data
       - ./mosquitto/log:/mosquitto/log
+  
+  traffic-accident-detection:
+    build:
+      context: ./apps/traffic-accident-detection
+    container_name: traffic-accident-detection
+    volumes:
+      - ./apps/traffic-accident-detection:/app
+    networks:
+      - dev
 
   api:
     build:
