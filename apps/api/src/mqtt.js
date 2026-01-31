@@ -81,7 +81,7 @@ class FrigateLPRBridge {
     
     this.client.publish('frigate/tracked_object_update', JSON.stringify(update))
     
-    console.log(`✅ Placa ${plateData.plate} publicada en Frigate`)
+    //console.log(`✅ Placa ${plateData.plate} publicada en Frigate`)
   }
   
   handleFrigateEvent(eventData) {
@@ -91,7 +91,7 @@ class FrigateLPRBridge {
   }
   
   sendWhatsAppAlert(lprData) {
-    console.log(`📱 Enviando WhatsApp para placa: ${lprData.plate}`)
+    // console.log(`📱 Enviando WhatsApp para placa: ${lprData.plate}`)
   }
   
   calculateDefaultBox(cameraName) {

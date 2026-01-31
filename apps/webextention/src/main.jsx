@@ -5,7 +5,8 @@ import { addMenuButton } from './component/menuButton';
 
 
 const pages = {
-    '#plate-numbre': Placas
+    '#plate-numbre': Placas,
+    '#accidents': Placas,
 }
 
 setTimeout(() => {

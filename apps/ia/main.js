@@ -8,7 +8,7 @@ const path = require('path');
 // Configuración desde variables de entorno
 const OLLAMA_URL = process.env.OLLAMA_URL || "http://localhost:11434/api/generate";
 const MODEL = process.env.MODEL || "llava";
-const RTSP_URL = process.env.RTSP_URL || "rtsp://10.0.0.137:8554/live";
+const RTSP_URL = process.env.RTSP_URL || "rtsp://10.0.0.140:8554/live";
 const ANALYSIS_INTERVAL = parseInt(process.env.ANALYSIS_INTERVAL) || 5;
 const PORT = process.env.PORT || 3001;
 const LOG_DIR = process.env.LOG_DIR || './logs';
