@@ -5,7 +5,6 @@ from ultralytics import YOLO
 model=YOLO(r"./weights/epoch14.pt")
 results = model(r"./testing/fig7.png", show=True, conf=0.25)
 
-
 output = []
 for r in results:
     detections = []
