@@ -1,6 +1,6 @@
 mqtt:
   enabled: true
-  host: mqtt   # can be IP or hostname
+  host: 10.0.0.140   # can be IP or hostname
   port: 1883        # default MQTT port
 
 version: 0.16-0
@@ -8,8 +8,7 @@ version: 0.16-0
 lpr:
   enabled: true
   model_size: small
-  debug_save_plates: true
-
+  debug_save_plates: false
 
 cameras:
   LicensePlateRecognition:
@@ -17,7 +16,7 @@ cameras:
     type: lpr
     ffmpeg:
       inputs:
-        - path: rtsp://10.0.0.137:8554/live
+        - path: rtsp://10.0.0.140:8554/accident
           roles:
             - detect
     detect:
@@ -26,14 +25,27 @@ cameras:
       height: 1080
       fps: 10
       min_initialized: 1
-    review:
-      detections:
-        labels:
-          - license_plate
-    notifications:
+    record:
+      enabled: false
+    snapshots:
+      enabled: false
+    mqtt:
       enabled: true
+      timestamp: true
+      bounding_box: true
+
 detect:
   enabled: true
-notifications:
+
+go2rtc:
+  streams:
+    LicensePlateRecognition:
+      - rtsp://10.0.0.140:8554/numberplate
+
+semantic_search:
   enabled: false
-  email: gabrielqwes123@gmail.com
+face_recognition:
+  enabled: false
+classification:
+  bird:
+    enabled: false
