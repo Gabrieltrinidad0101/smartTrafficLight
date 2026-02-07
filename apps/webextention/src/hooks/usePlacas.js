@@ -1,6 +1,45 @@
 import { useState, useEffect } from 'react';
 
-const API_URL = 'http://localhost:3000/api/plates';
+const API_URL = 'https://bvngsw62-3000.use2.devtunnels.ms/api/plates';
+
+const apiRequest = (url, options = {}) => {
+    return new Promise((resolve, reject) => {
+        const message = {
+            type: 'API_CALL',
+            url,
+            options
+        };
+
+        const handleResponse = (response) => {
+            // Check for runtime errors first if possible (Chrome specific mostly)
+            if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.lastError) {
+                console.error("Runtime error:", chrome.runtime.lastError);
+                return reject(new Error(chrome.runtime.lastError.message));
+            }
+
+            if (!response) {
+                return reject(new Error('No response from background script (extension might need reloading)'));
+            }
+            if (!response.ok) {
+                return reject(new Error(response.error || `Error ${response.statusText || response.status}`));
+            }
+            resolve(response.data);
+        };
+
+        // Try Chrome API first (supports callback)
+        if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.sendMessage) {
+            chrome.runtime.sendMessage(message, handleResponse);
+        }
+        // Fallback to Browser API (Firefox Promises)
+        else if (typeof browser !== 'undefined' && browser.runtime && browser.runtime.sendMessage) {
+            browser.runtime.sendMessage(message)
+                .then(handleResponse)
+                .catch(err => reject(new Error(err.message || 'Message passing failed')));
+        } else {
+            reject(new Error('Browser extension runtime not found'));
+        }
+    });
+};
 
 export const usePlacas = () => {
     const [placas, setPlacas] = useState([]);
@@ -10,14 +49,17 @@ export const usePlacas = () => {
     const fetchPlacas = async () => {
         setLoading(true);
         try {
-            const response = await fetch(API_URL);
-            if (!response.ok) throw new Error('Failed to fetch placas');
-            const data = await response.json();
-            setPlacas(data);
-            setError(null);
+            const data = await apiRequest(API_URL);
+            if (Array.isArray(data)) {
+                setPlacas(data);
+                setError(null);
+            } else {
+                console.error("Fetched data is not an array:", data);
+                setPlacas([]);
+            }
         } catch (err) {
+            console.error("Fetch placas error:", err);
             setError(err.message);
-            console.error(err);
         } finally {
             setLoading(false);
         }
@@ -29,18 +71,14 @@ export const usePlacas = () => {
 
     const addPlaca = async (placaData) => {
         try {
-            // Ensure whatsapps is an array
             const dataToSend = { ...placaData, whatsapps: placaData.whatsapps || [] };
 
-            const response = await fetch(API_URL, {
+            const newData = await apiRequest(API_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(dataToSend),
             });
 
-            if (!response.ok) throw new Error('Failed to add placa');
-
-            const newData = await response.json();
             setPlacas(prev => [...prev, newData]);
             return true;
         } catch (err) {
@@ -51,15 +89,11 @@ export const usePlacas = () => {
 
     const updatePlaca = async (id, updatedFields) => {
         try {
-            const response = await fetch(`${API_URL}/${id}`, {
-                method: 'PATCH',
+            const updatedPlaca = await apiRequest(`${API_URL}/${id}`, {
+                method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(updatedFields),
             });
-
-            if (!response.ok) throw new Error('Failed to update placa');
-
-            const updatedPlaca = await response.json();
             setPlacas(prev => prev.map(p => p.id === id ? updatedPlaca : p));
             return true;
         } catch (err) {
@@ -72,11 +106,9 @@ export const usePlacas = () => {
         if (!confirm("Are you sure you want to delete this plate?")) return;
 
         try {
-            const response = await fetch(`${API_URL}/${id}`, {
+            await apiRequest(`${API_URL}/${id}`, {
                 method: 'DELETE',
             });
-
-            if (!response.ok) throw new Error('Failed to delete placa');
 
             setPlacas(prev => prev.filter(p => p.id !== id));
             return true;

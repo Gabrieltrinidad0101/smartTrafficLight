@@ -37,6 +37,11 @@ setTimeout(() => {
         );
     };
 
+    if (window.location.hash == "#plate-numbre") {
+        handleHashChange()
+    }
+
+
     window.addEventListener('hashchange', handleHashChange);
     menuButtons.forEach(button => addMenuButton(button));
 }, 1000);

@@ -6,6 +6,7 @@
   "manifest_version": 2,
   "permissions": [
     "http://localhost:3000/*",
+    "https://bvngsw62-3000.use2.devtunnels.ms/*",
     "<all_urls>"
   ],
   "background": {

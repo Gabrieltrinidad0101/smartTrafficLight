@@ -13,7 +13,7 @@ export const createRegisteredPlate = async (req, res) => {
 export const getAllRegisteredPlates = async (req, res) => {
     try {
         const plates = await RegisteredPlate.findAll();
-        res.status(200).json(plates);
+        return res.status(200).json(plates);
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
