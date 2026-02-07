@@ -44,15 +44,6 @@ services:
     networks:
       - dev
 
-  ollama:
-    image: ollama/ollama:latest
-    container_name: ollama
-    ports:
-      - "11434:11434"
-    restart: unless-stopped
-    networks:
-      - dev
-
   # frigate:
   #   container_name: frigate
   #   image: ghcr.io/blakeblackshear/frigate:stable

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 
-const API_URL = 'http://localhost:3000/placas';
+const API_URL = 'http://localhost:3000/api/plates';
 
 export const usePlacas = () => {
     const [placas, setPlacas] = useState([]);
