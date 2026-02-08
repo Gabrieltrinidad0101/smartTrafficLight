@@ -1,68 +1,18 @@
 import { useState, useEffect } from 'react';
+import { apiRequest } from '../utils/apiRequest';
 
-const API_URL = 'https://bvngsw62-3000.use2.devtunnels.ms/api/plates';
-
-const apiRequest = (url, options = {}) => {
-    return new Promise((resolve, reject) => {
-        const message = {
-            type: 'API_CALL',
-            url,
-            options
-        };
-
-        const handleResponse = (response) => {
-            // Check for runtime errors first if possible (Chrome specific mostly)
-            if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.lastError) {
-                console.error("Runtime error:", chrome.runtime.lastError);
-                return reject(new Error(chrome.runtime.lastError.message));
-            }
-
-            if (!response) {
-                return reject(new Error('No response from background script (extension might need reloading)'));
-            }
-            if (!response.ok) {
-                return reject(new Error(response.error || `Error ${response.statusText || response.status}`));
-            }
-            resolve(response.data);
-        };
-
-        // Try Chrome API first (supports callback)
-        if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.sendMessage) {
-            chrome.runtime.sendMessage(message, handleResponse);
-        }
-        // Fallback to Browser API (Firefox Promises)
-        else if (typeof browser !== 'undefined' && browser.runtime && browser.runtime.sendMessage) {
-            browser.runtime.sendMessage(message)
-                .then(handleResponse)
-                .catch(err => reject(new Error(err.message || 'Message passing failed')));
-        } else {
-            reject(new Error('Browser extension runtime not found'));
-        }
-    });
-};
+const API_URL = 'http://localhost:3000/api/plates';
 
 export const usePlacas = () => {
     const [placas, setPlacas] = useState([]);
     const [loading, setLoading] = useState(false);
-    const [error, setError] = useState(null);
 
     const fetchPlacas = async () => {
         setLoading(true);
-        try {
-            const data = await apiRequest(API_URL);
-            if (Array.isArray(data)) {
-                setPlacas(data);
-                setError(null);
-            } else {
-                console.error("Fetched data is not an array:", data);
-                setPlacas([]);
-            }
-        } catch (err) {
-            console.error("Fetch placas error:", err);
-            setError(err.message);
-        } finally {
-            setLoading(false);
-        }
+        const [data, err] = await apiRequest(API_URL);
+        setLoading(false);
+        if (err) return;
+        if (Array.isArray(data)) setPlacas(data);
     };
 
     useEffect(() => {
@@ -70,52 +20,46 @@ export const usePlacas = () => {
     }, []);
 
     const addPlaca = async (placaData) => {
-        try {
-            const dataToSend = { ...placaData, whatsapps: placaData.whatsapps || [] };
+        const dataToSend = { ...placaData, whatsapps: placaData.whatsapps || [] };
 
-            const newData = await apiRequest(API_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(dataToSend),
-            });
+        const [newData, err] = await apiRequest(API_URL, {
+            method: 'POST',
+            body: JSON.stringify(dataToSend),
+        });
 
-            setPlacas(prev => [...prev, newData]);
-            return true;
-        } catch (err) {
-            setError(err.message);
-            return false;
-        }
+        console.log({err})
+
+
+        if (!err) return
+
+        setPlacas(prev => [...prev, newData]);
     };
 
     const updatePlaca = async (id, updatedFields) => {
-        try {
-            const updatedPlaca = await apiRequest(`${API_URL}/${id}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(updatedFields),
-            });
-            setPlacas(prev => prev.map(p => p.id === id ? updatedPlaca : p));
-            return true;
-        } catch (err) {
+        const [updatedPlaca, err] = await apiRequest(`${API_URL}/${id}`, {
+            method: 'PUT',
+            body: JSON.stringify(updatedFields),
+        });
+
+        if (err) {
             setError(err.message);
             return false;
         }
+
+        setPlacas(prev => prev.map(p => p.id === id ? updatedPlaca : p));
+        return true;
     };
 
     const deletePlaca = async (id) => {
         if (!confirm("Are you sure you want to delete this plate?")) return;
 
-        try {
-            await apiRequest(`${API_URL}/${id}`, {
-                method: 'DELETE',
-            });
+        const [, err] = await apiRequest(`${API_URL}/${id}`, {
+            method: 'DELETE',
+        });
 
-            setPlacas(prev => prev.filter(p => p.id !== id));
-            return true;
-        } catch (err) {
-            setError(err.message);
-            return false;
-        }
+        if (err) return;
+
+        setPlacas(prev => prev.filter(p => p.id !== id));
     };
 
     const addWhatsapp = async (id, number) => {
@@ -148,7 +92,6 @@ export const usePlacas = () => {
     return {
         placas,
         loading,
-        error,
         addPlaca,
         updatePlaca,
         deletePlaca,
