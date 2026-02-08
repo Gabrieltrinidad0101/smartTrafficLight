@@ -44,28 +44,28 @@ services:
     networks:
       - dev
 
-  # frigate:
-  #   container_name: frigate
-  #   image: ghcr.io/blakeblackshear/frigate:stable
-  #   restart: unless-stopped
-  #   privileged: true
-  #   shm_size: "512mb"
-  #   devices:
-  #     - /dev/bus/usb:/dev/bus/usb
-  #   ports:
-  #     - "5000:5000"
-  #     - "1935:1935"
-  #   volumes:
-  #     - ./config:/config
-  #     - ./media:/media
-  #   depends_on:
-  #     - mqtt
-  #   environment:
-  #     - FRIGATE_RTSP_PASSWORD=tu_password
-  #     - MQTT_HOST=mqtt
-  #     - MQTT_PORT=1883
-  #   networks:
-  #     - dev
+  frigate:
+    container_name: frigate
+    image: ghcr.io/blakeblackshear/frigate:stable
+    restart: unless-stopped
+    privileged: true
+    shm_size: "512mb"
+    devices:
+      - /dev/bus/usb:/dev/bus/usb
+    ports:
+      - "5000:5000"
+      - "1935:1935"
+    volumes:
+      - ./config:/config
+      - ./media:/media
+    depends_on:
+      - mqtt
+    environment:
+      - FRIGATE_RTSP_PASSWORD=tu_password
+      - MQTT_HOST=mqtt
+      - MQTT_PORT=1883
+    networks:
+      - dev
 
   rtsp-server:
     image: bluenviron/mediamtx:latest
