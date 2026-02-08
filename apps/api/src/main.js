@@ -3,6 +3,7 @@ import cors from "cors"
 import "./mqtt.js"
 import sequelize from "./config/db.js"
 import registeredPlateRoutes from "./routes/registeredPlateRoutes.js"
+import notificationRoutes from "./routes/notificationRoutes.js"
 import morgan from "morgan"
 
 const app = express();
@@ -12,6 +13,8 @@ app.use(express.json());
 app.use(morgan("dev"));
 
 app.use('/api/plates', registeredPlateRoutes);
+app.use('/api/notifications', notificationRoutes);
+app.use('/images', express.static('images'));
 
 try {
     await sequelize.sync(); // Sync database

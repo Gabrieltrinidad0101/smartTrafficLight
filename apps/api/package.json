@@ -16,6 +16,7 @@
     "package.json": "^2.0.1",
     "pg": "^8.18.0",
     "pg-hstore": "^2.3.4",
-    "sequelize": "^6.37.7"
+    "sequelize": "^6.37.7",
+    "twilio": "^5.4.3"
   }
 }

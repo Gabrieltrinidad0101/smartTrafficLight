@@ -9,8 +9,8 @@ def load_config(config_path="config.yml"):
     with open(config_path, "r") as file:
         return yaml.safe_load(file)
 
-def process_camera(rtsp_url, api_url, model_path):
-    print(f"Starting analysis on {rtsp_url}...")
+def process_camera(rtsp_url, api_url, model_path, cooldown_seconds=300):
+    print(f"Starting analysis on {rtsp_url} with cooldown {cooldown_seconds}s...")
     try:
         model = YOLO(model_path)
     except Exception as e:
@@ -25,6 +25,11 @@ def process_camera(rtsp_url, api_url, model_path):
     target_fps = 5
     frame_interval = 1.0 / target_fps
     last_processed_time = 0
+
+    # Validation and Cooldown variables
+    consecutive_accident_frames = 0
+    REQUIRED_CONSECUTIVE_FRAMES = 5
+    last_accident_report_time = 0
 
     headers = {"Content-Type": "application/json"}
 
@@ -41,12 +46,17 @@ def process_camera(rtsp_url, api_url, model_path):
                 continue
             
             current_time = time.time()
+
+            # Check cooldown
+            if current_time - last_accident_report_time < cooldown_seconds:
+                continue
+
             if current_time - last_processed_time >= frame_interval:
                 last_processed_time = current_time
                 
                 results = model(frame, verbose=False, conf=0.25)
                 
-                accident_found = False
+                accident_found_in_frame = False
                 detections_data = []
 
                 for r in results:
@@ -63,23 +73,56 @@ def process_camera(rtsp_url, api_url, model_path):
                                 "bbox_xyxy": [float(x) for x in box.xyxy[0]]
                             })
                             if cls_id == 0:
-                                accident_found = True
+                                accident_found_in_frame = True
 
-                if accident_found:
-                    print(f"!!! Accident Detected on {rtsp_url} at {time.strftime('%H:%M:%S')} !!!")
-                    print(detections_data)
+                if accident_found_in_frame:
+                    consecutive_accident_frames += 1
+                else:
+                    consecutive_accident_frames = 0
+
+                if consecutive_accident_frames >= REQUIRED_CONSECUTIVE_FRAMES:
+                    timestamp_struct = time.localtime(current_time)
+                    date_str = time.strftime("%d/%m", timestamp_struct)
+                    time_str = time.strftime("%I%p", timestamp_struct).lower()
+                    
+                    try:
+                        # Save locally (optional, but good for debug)
+                        filename = f"accident_{int(current_time)}.jpg"
+                        cv2.imwrite(filename, frame) # Saving in working dir (which is /app in container)
+                        
+                        # Send WhatsApp Notification via API (Multipart Upload)
+                        print("Sending WhatsApp alert via API (File Upload)...")
+                        
+                        # Prepare multipart/form-data
+                        # We need to open the file in binary mode
+                        with open(filename, 'rb') as img_file:
+                            files = {'image': (filename, img_file, 'image/jpeg')}
+                            data = {
+                                "date": date_str,
+                                "time": time_str
+                            }
+                            
+                            try:
+                                # Assuming 'api' is the service name in docker-compose and reachable
+                                api_notification_url = "http://api:3000/api/notifications/send" 
+                                notif_response = requests.post(api_notification_url, data=data, files=files, timeout=10)
+                                print(f"Notification API Response: {notif_response.status_code} - {notif_response.text}")
+                            except Exception as e:
+                                print(f"Error calling Notification API: {e}")
+                                
+                    except Exception as e:
+                        print(f"Error handling notification/image save: {e}")
+
                     payload = {"sub_label": "manual_trigger", "duration": 1, "include_recording": True}
                     try:
                         response = requests.post(api_url, headers=headers, json=payload, timeout=5)
-                        print(f"Status Code: {response.status_code}")
-                        if response.status_code == 200:
-                            print("Success! Event created.")
-                            print(f"Response: {response.json()}")
-                        else:
+                        if response.status_code != 200:
                             print(f"Error: {response.text}")
                     except requests.RequestException as e:
                         print(f"Request Error: {e}")
-                    print("-" * 30)
+
+                    consecutive_accident_frames = 0
+                    last_accident_report_time = time.time()
 
     except KeyboardInterrupt:
         print(f"Stopping analysis for {rtsp_url}...")
@@ -103,10 +146,11 @@ def main():
             
         rtsp_url = cam_data.get("rtsp_url")
         api_url = cam_data.get("api_url")
+        cooldown = cam_data.get("cooldown", 300) # Default to 300s (5 mins) if not specified
         
         if rtsp_url and api_url:
             print(f"Initializing camera: {cam_name}")
-            t = threading.Thread(target=process_camera, args=(rtsp_url, api_url, model_path))
+            t = threading.Thread(target=process_camera, args=(rtsp_url, api_url, model_path, cooldown))
             t.daemon = True
             t.start()
             threads.append(t)

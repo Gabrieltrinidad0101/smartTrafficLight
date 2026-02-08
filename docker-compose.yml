@@ -18,8 +18,11 @@ services:
     build:
       context: ./apps/traffic-accident-detection
     container_name: traffic-accident-detection
+    env_file:
+      - ./apps/traffic-accident-detection/.env
     volumes:
       - ./apps/traffic-accident-detection:/app
+      - ./shared_images:/app/images
     networks:
       - dev
 
@@ -27,6 +30,8 @@ services:
     build:
       context: ./apps/api
     container_name: api
+    env_file:
+      - ./apps/traffic-accident-detection/.env
     ports:
       - 3000:3000
     depends_on:
@@ -41,6 +46,7 @@ services:
     volumes:
       - ./apps/api:/app
       - node_modules:/app/node_modules
+      - ./shared_images:/app/images
     networks:
       - dev
 

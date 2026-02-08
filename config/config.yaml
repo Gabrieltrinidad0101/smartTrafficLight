@@ -25,10 +25,6 @@ cameras:
       height: 1080
       fps: 10
       min_initialized: 1
-    record:
-      enabled: false
-    snapshots:
-      enabled: false
     mqtt:
       enabled: true
       timestamp: true
@@ -48,10 +44,6 @@ cameras:
       height: 1080
       fps: 10
       min_initialized: 1
-    record:
-      enabled: false
-    snapshots:
-      enabled: false
     mqtt:
       enabled: true
       timestamp: true
