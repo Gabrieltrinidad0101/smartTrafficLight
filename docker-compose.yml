@@ -46,22 +46,12 @@ services:
 
   frigate:
     container_name: frigate
-    image: ghcr.io/blakeblackshear/frigate:stable-tensorrt  # ¡Imagen específica para NVIDIA!
+    image: ghcr.io/blakeblackshear/frigate:stable
     restart: unless-stopped
     privileged: true
     shm_size: "512mb"
     devices:
       - /dev/bus/usb:/dev/bus/usb
-    # --- NUEVA SECCIÓN CRÍTICA PARA LA GPU ---
-    deploy:                  
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              # device_ids: ['0']      # Usar si tienes múltiples GPUs y quieres seleccionar una
-              count: 1                 # Número de GPUs a usar
-              capabilities: [gpu]
-    # -----------------------------------------
     ports:
       - "5000:5000"
       - "1935:1935"
@@ -74,9 +64,9 @@ services:
       - FRIGATE_RTSP_PASSWORD=tu_password
       - MQTT_HOST=mqtt
       - MQTT_PORT=1883
-      - NVIDIA_VISIBLE_DEVICES=all     # Variable de entorno para exponer la GPU al contenedor
     networks:
       - dev
+
 
   rtsp-server:
     image: bluenviron/mediamtx:latest

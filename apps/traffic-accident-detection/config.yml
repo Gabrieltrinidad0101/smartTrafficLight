@@ -1,0 +1,9 @@
+cameras:
+  carAndMotorAccident:
+    rtsp_url: "rtsp://10.0.0.142:8554/carAndMotorAccident"
+    api_url: "http://frigate:5000/api/events/carAndMotorAccident/accidente/create"
+    active: true
+  LicensePlateRecognition:
+    rtsp_url: "rtsp://10.0.0.142:8554/accident"
+    api_url: "http://frigate:5000/api/events/LicensePlateRecognition/accidente/create"
+    active: true

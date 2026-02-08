@@ -7,8 +7,8 @@ RUN apt-get update && apt-get install -y \
     libglib2.0-0 \
     && rm -rf /var/lib/apt/lists/*
 
-RUN pip install --no-cache-dir ultralytics
+RUN pip install --no-cache-dir ultralytics watchdog PyYAML requests opencv-python-headless
 
 COPY . .
 
-CMD ["python", "infer.py"]
+CMD ["watchmedo", "auto-restart", "--directory=.", "--pattern=*.py;*.yml", "--recursive", "--", "python", "infer.py"]
