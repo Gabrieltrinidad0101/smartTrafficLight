@@ -25,9 +25,7 @@ const Placas = () => {
         };
 
         const success = await addPlaca(data);
-        if (success) {
-            closeModal();
-        }
+        closeModal();
     };
 
     const openModal = () => {

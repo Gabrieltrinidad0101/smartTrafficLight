@@ -14,7 +14,6 @@ const RegisteredPlate = sequelize.define('RegisteredPlate', {
     whatsapps: {
         type: DataTypes.ARRAY(DataTypes.STRING),
         defaultValue: [],
-        allowNull: true,
     }
 }, {
     timestamps: true,

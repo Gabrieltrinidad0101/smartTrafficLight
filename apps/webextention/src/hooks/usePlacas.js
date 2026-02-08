@@ -27,10 +27,7 @@ export const usePlacas = () => {
             body: JSON.stringify(dataToSend),
         });
 
-        console.log({err})
-
-
-        if (!err) return
+        if (err) return
 
         setPlacas(prev => [...prev, newData]);
     };

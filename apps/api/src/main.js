@@ -3,11 +3,13 @@ import cors from "cors"
 import "./mqtt.js"
 import sequelize from "./config/db.js"
 import registeredPlateRoutes from "./routes/registeredPlateRoutes.js"
+import morgan from "morgan"
 
 const app = express();
 
 app.use(cors("*"));
 app.use(express.json());
+app.use(morgan("dev"));
 
 app.use('/api/plates', registeredPlateRoutes);
 

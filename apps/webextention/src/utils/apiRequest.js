@@ -1,15 +1,16 @@
-export const apiRequest = (url, options = {
-    method: 'GET',
-    headers: {
-        'Content-Type': 'application/json',
-    },
-    body: null
-}) => {
+export const apiRequest = (url, options) => {
     return new Promise((resolve) => {
         const message = {
             type: 'API_CALL',
             url,
-            options
+            options: {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: null,
+                ...options
+            }
         };
 
         const handleResponse = (response) => {
