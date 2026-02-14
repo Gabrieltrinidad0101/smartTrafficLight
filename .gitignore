@@ -46,3 +46,4 @@ docker-compose.override.yml
 # node
 node_modules
 apps/traffic-accident-detection/weights
+apps/traffic-accident-detection/*.jpg

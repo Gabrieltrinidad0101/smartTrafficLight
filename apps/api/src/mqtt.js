@@ -1,6 +1,8 @@
 import mqtt from 'mqtt'
-import { deleteEvent, updateEvent } from './frigateApi.js'
+import { deleteEvent, updateEvent, createEvent } from './frigateApi.js'
 import { MISSING_VEHICLE, MISSING_VEHICLE_DESCRIPTION } from "./typesOfDetections.js";
+import RegisteredPlate from './models/RegisteredPlate.js';
+import { sendPlateAlert } from './services/notificationService.js';
 
 class FrigateLPRBridge {
   constructor() {
@@ -18,20 +20,14 @@ class FrigateLPRBridge {
 
     this.client.on('message', async (topic, message) => {
       try {
-        console.log(topic)
         const data = JSON.parse(message.toString())
-        if (data?.plate === "AK64DMV") {
-          await updateEvent(data.id, "/sub_label", {
-            "subLabel": MISSING_VEHICLE,
-            "subLabelScore": 1
-          })
-          await updateEvent(data.id, "/description", {
-            "description": MISSING_VEHICLE_DESCRIPTION,
-          })
-          this.handleExternalLPR(data)
-          return
-        }
         if (data?.plate) {
+          const registeredPlate = await RegisteredPlate.findOne({ where: { number: data.plate } })
+
+          if (registeredPlate) {
+            await createEvent(data.camera, 'vehiculo desaparecido', data.plate)
+            this.sendWhatsAppAlert(data.plate, registeredPlate.whatsapps)
+          }
           deleteEvent(data.id)
         }
       } catch (error) {
@@ -40,18 +36,22 @@ class FrigateLPRBridge {
     })
   }
 
-  handleExternalLPR(lprData) {
-    this.sendWhatsAppAlert(lprData)
-  }
-
   handleFrigateEvent(eventData) {
     if (eventData.after?.label === 'license_plate') {
       // console.log('Frigate detectó placa:', eventData.after.recognized_license_plate)
     }
   }
 
-  sendWhatsAppAlert(lprData) {
-    // console.log(`📱 Enviando WhatsApp para placa: ${lprData.plate}`)
+  async sendWhatsAppAlert(plate, whatsapps) {
+    if (!whatsapps || whatsapps.length === 0) {
+      console.log(`No WhatsApp numbers registered for plate ${plate}`);
+      return;
+    }
+
+    console.log(`📱 Sending WhatsApp alerts for plate ${plate} to ${whatsapps.length} numbers...`);
+    for (const number of whatsapps) {
+      await sendPlateAlert(plate, number);
+    }
   }
 
   calculateDefaultBox(cameraName) {

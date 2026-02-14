@@ -9,7 +9,7 @@ def load_config(config_path="config.yml"):
     with open(config_path, "r") as file:
         return yaml.safe_load(file)
 
-def process_camera(rtsp_url, api_url, model_path, cooldown_seconds=300):
+def process_camera(camera_name, rtsp_url, api_url, model_path, cooldown_seconds=300):
     print(f"Starting analysis on {rtsp_url} with cooldown {cooldown_seconds}s...")
     try:
         model = YOLO(model_path)
@@ -57,8 +57,8 @@ def process_camera(rtsp_url, api_url, model_path, cooldown_seconds=300):
                 results = model(frame, verbose=False, conf=0.25)
                 
                 accident_found_in_frame = False
+                max_conf = 0.0
                 detections_data = []
-
                 for r in results:
                     if r.boxes:
                         for box in r.boxes:
@@ -74,6 +74,8 @@ def process_camera(rtsp_url, api_url, model_path, cooldown_seconds=300):
                             })
                             if cls_id == 0:
                                 accident_found_in_frame = True
+                                if conf > max_conf:
+                                    max_conf = conf
 
                 if accident_found_in_frame:
                     consecutive_accident_frames += 1
@@ -85,27 +87,22 @@ def process_camera(rtsp_url, api_url, model_path, cooldown_seconds=300):
                     date_str = time.strftime("%d/%m", timestamp_struct)
                     time_str = time.strftime("%I%p", timestamp_struct).lower()
                     
+                    time_filename = time.strftime("%Y-%m-%d-%H-%M-%S", timestamp_struct)
+                    filename = f"{camera_name}-{time_filename}-conf-{max_conf}.jpg"
+                    
                     try:
-                        # Save locally (optional, but good for debug)
-                        filename = f"accident_{int(current_time)}.jpg"
                         cv2.imwrite(filename, frame) # Saving in working dir (which is /app in container)
                         
-                        # Send WhatsApp Notification via API (Multipart Upload)
-                        print("Sending WhatsApp alert via API (File Upload)...")
-                        
-                        # Prepare multipart/form-data
-                        # We need to open the file in binary mode
                         with open(filename, 'rb') as img_file:
                             files = {'image': (filename, img_file, 'image/jpeg')}
                             data = {
                                 "date": date_str,
                                 "time": time_str
                             }
-                            
+
                             try:
-                                # Assuming 'api' is the service name in docker-compose and reachable
                                 api_notification_url = "http://api:3000/api/notifications/send" 
-                                notif_response = requests.post(api_notification_url, data=data, files=files, timeout=10)
+                                notif_response = requests.post(api_notification_url, data=data,timeout=10)
                                 print(f"Notification API Response: {notif_response.status_code} - {notif_response.text}")
                             except Exception as e:
                                 print(f"Error calling Notification API: {e}")
@@ -150,7 +147,7 @@ def main():
         
         if rtsp_url and api_url:
             print(f"Initializing camera: {cam_name}")
-            t = threading.Thread(target=process_camera, args=(rtsp_url, api_url, model_path, cooldown))
+            t = threading.Thread(target=process_camera, args=(cam_name, rtsp_url, api_url, model_path, cooldown))
             t.daemon = True
             t.start()
             threads.append(t)

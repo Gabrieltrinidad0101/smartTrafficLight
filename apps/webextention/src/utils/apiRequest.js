@@ -1,51 +1,39 @@
-export const apiRequest = (url, options) => {
-    return new Promise((resolve) => {
-        const message = {
-            type: 'API_CALL',
-            url,
-            options: {
-                method: "GET",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: null,
-                ...options
-            }
+export const apiRequest = async (url, options = {}) => {
+    try {
+        const defaultOptions = {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+            },
         };
 
-        const handleResponse = (response) => {
-            if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.lastError) {
-                console.error("Runtime error:", chrome.runtime.lastError);
-                return resolve([null, new Error(chrome.runtime.lastError.message)]);
-            }
-
-            if (!response) {
-                return resolve([null, new Error('No response from background script (extension might need reloading)')]);
-            }
-            if (!response.ok) {
-                return resolve([null, new Error(response.error || `Error ${response.statusText || response.status}`)]);
-            }
-            resolve([response.data, null]);
+        const mergedOptions = {
+            ...defaultOptions,
+            ...options,
+            headers: {
+                ...defaultOptions.headers,
+                ...options.headers,
+            },
         };
 
-        const handleError = (err) => {
-            resolve([null, new Error(err.message || 'Message passing failed')]);
-        };
+        const response = await fetch(url, mergedOptions);
 
-        if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.sendMessage) {
-            try {
-                chrome.runtime.sendMessage(message, handleResponse);
-            } catch (e) {
-                handleError(e);
-            }
+        let data = null;
+        const contentType = response.headers.get("content-type");
+        if (contentType && contentType.includes("application/json")) {
+            data = await response.json();
+        } else if (response.status !== 204) {
+            data = await response.text();
         }
 
-        else if (typeof browser !== 'undefined' && browser.runtime && browser.runtime.sendMessage) {
-            browser.runtime.sendMessage(message)
-                .then(handleResponse)
-                .catch(handleError);
-        } else {
-            resolve([null, new Error('Browser extension runtime not found')]);
+        if (!response.ok) {
+            const errorMessage = (data && data.error) || data || `Error ${response.statusText || response.status}`;
+            return [null, new Error(errorMessage)];
         }
-    });
+
+        return [data, null];
+    } catch (error) {
+        console.error("API Call Error:", error);
+        return [null, error instanceof Error ? error : new Error(String(error))];
+    }
 };

@@ -4,16 +4,16 @@ services:
     container_name: mqtt
     restart: unless-stopped
     ports:
-      - "1883:1883"    # MQTT
-      - "8883:8883"    # MQTTS (secure)
-      - "9001:9001"    # WebSockets
+      - "1883:1883" # MQTT
+      - "8883:8883" # MQTTS (secure)
+      - "9001:9001" # WebSockets
     networks:
       - dev
     volumes:
       - ./mosquitto/config:/mosquitto/config
       - ./mosquitto/data:/mosquitto/data
       - ./mosquitto/log:/mosquitto/log
-  
+
   traffic-accident-detection:
     build:
       context: ./apps/traffic-accident-detection
@@ -73,6 +73,19 @@ services:
     networks:
       - dev
 
+  nginx:
+    image: nginx:alpine
+    container_name: nginx-proxy
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./apps/webextention/dist/content.js:/etc/nginx/scripts/content.js:ro
+    depends_on:
+      - frigate
+    networks:
+      - dev
 
   rtsp-server:
     image: bluenviron/mediamtx:latest
@@ -95,11 +108,8 @@ services:
     volumes:
       - ./videos:/videos:ro
     command: >
-      -re -stream_loop -1
-      -i "/videos/cars number plate.mp4"
-      -c:v copy -c:a aac
-      -f rtsp rtsp://rtsp-server:8554/numberplate
-  
+      -re -stream_loop -1 -i "/videos/cars number plate.mp4" -c:v copy -c:a aac -f rtsp rtsp://rtsp-server:8554/numberplate
+
   ffmpeg-strea2:
     image: jrottenberg/ffmpeg:4.3-alpine
     container_name: ffmpeg-stream2
@@ -109,10 +119,7 @@ services:
     volumes:
       - ./videos:/videos:ro
     command: >
-      -re -stream_loop -1
-      -i "/videos/car accident good camera1080p.mp4"
-      -c:v copy -c:a aac
-      -f rtsp rtsp://rtsp-server:8554/accident
+      -re -stream_loop -1 -i "/videos/car accident good camera1080p.mp4" -c:v copy -c:a aac -f rtsp rtsp://rtsp-server:8554/accident
 
   ffmpeg-strea3:
     image: jrottenberg/ffmpeg:4.3-alpine
@@ -123,10 +130,7 @@ services:
     volumes:
       - ./videos:/videos:ro
     command: >
-      -re -stream_loop -1
-      -i "/videos/person walking2.mp4"
-      -c:v copy -c:a aac
-      -f rtsp rtsp://rtsp-server:8554/personWalking
+      -re -stream_loop -1 -i "/videos/person walking2.mp4" -c:v copy -c:a aac -f rtsp rtsp://rtsp-server:8554/personWalking
 
   ffmpeg-strea4:
     image: jrottenberg/ffmpeg:4.3-alpine
@@ -137,11 +141,7 @@ services:
     volumes:
       - ./videos:/videos:ro
     command: >
-      -re -stream_loop -1
-      -i "/videos/car and motor accident.mp4"
-      -c:v copy -c:a aac
-      -f rtsp rtsp://rtsp-server:8554/carAndMotorAccident
-
+      -re -stream_loop -1 -i "/videos/car and motor accident.mp4" -c:v copy -c:a aac -f rtsp rtsp://rtsp-server:8554/carAndMotorAccident
 
   # traffic-detector:
   #   build: ./apps/ia
@@ -186,6 +186,7 @@ volumes:
   restreamer-data:
   node_modules:
   postgres_data:
+
 
 networks:
   dev:

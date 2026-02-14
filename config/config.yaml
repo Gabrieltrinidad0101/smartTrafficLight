@@ -1,6 +1,6 @@
 mqtt:
   enabled: true
-  host: 10.0.0.142   # can be IP or hostname
+  host: mqtt   # can be IP or hostname
   port: 1883        # default MQTT port
 
 version: 0.16-0
@@ -10,15 +10,32 @@ lpr:
   model_size: large
   debug_save_plates: true
 
+record:
+  enabled: true
+  retain:
+    days: 0.007 # Keep continuous recording for ~10 minutes
+    mode: all
+  alerts:
+    retain:
+      days: 30
+      mode: motion
+  detections:
+    retain:
+      days: 30
+      mode: motion
+
 cameras:
   carAndMotorAccident:
     enabled: true
     type: lpr
+    record:
+      enabled: true
     ffmpeg:
       inputs:
         - path: rtsp://10.0.0.142:8554/carAndMotorAccident
           roles:
             - detect
+            - record
     detect:
       enabled: true
       width: 1920
@@ -33,11 +50,14 @@ cameras:
   LicensePlateRecognition:
     enabled: true
     type: lpr
+    record:
+      enabled: true
     ffmpeg:
       inputs:
-        - path: rtsp://10.0.0.142:8554/accident
+        - path: rtsp://10.0.0.142:8554/numberplate
           roles:
             - detect
+            - record
     detect:
       enabled: true
       width: 1920
@@ -48,14 +68,33 @@ cameras:
       enabled: true
       timestamp: true
       bounding_box: true
+  
+  # Accident:
+  #   enabled: true
+  #   type: lpr
+  #   ffmpeg:
+  #     inputs:
+  #       - path: rtsp://10.0.0.142:8554/accident
+  #         roles:
+  #           - detect
+  #   detect:
+  #     enabled: true
+  #     width: 1920
+  #     height: 1080
+  #     fps: 10
+  #     min_initialized: 1
+  #   mqtt:
+  #     enabled: true
+  #     timestamp: true
+  #     bounding_box: true
 
 detect:
   enabled: true
 
-go2rtc:
-  streams:
-    LicensePlateRecognition:
-      - rtsp://10.0.0.142:8554/numberplate
+# go2rtc:
+#   streams:
+#     LicensePlateRecognition:
+#       - rtsp://10.0.0.142:8554/numberplate
 
 face_recognition:
   enabled: true

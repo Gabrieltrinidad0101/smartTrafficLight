@@ -1,11 +1,11 @@
 import axios from "axios"
 
-export async function updateEvent(eventId,path,data) {
+export async function updateEvent(eventId, path, data) {
     setTimeout(async () => {
 
         const endpoint = `http://10.0.0.138:5000/api/events/${eventId}/${path}`;
         try {
-            const response = await axios.post(endpoint,data);
+            const response = await axios.post(endpoint, data);
             console.log(`✅ Event ${eventId} updated successfully.`);
             return response.data;
         } catch (error) {
@@ -13,6 +13,20 @@ export async function updateEvent(eventId,path,data) {
             handleError(error, eventId, baseUrl);
         }
     }, 3000)
+}
+
+export async function createEvent(camera, label, subLabel) {
+    const endpoint = `http://frigate:5000/api/events/${camera}/${label}/create`;
+    try {
+        const response = await axios.post(endpoint, {
+            sub_label: subLabel
+        });
+        console.log(`✅ Event created for camera ${camera} with sub_label ${subLabel}.`);
+        return response.data;
+    } catch (error) {
+        console.error(`❌ Error creating event for ${camera}:`, error.message);
+        return null;
+    }
 }
 
 /**
