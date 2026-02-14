@@ -182,6 +182,26 @@ services:
     networks:
       - dev
 
+  bytetrack:
+    build:
+      context: ./apps/bytetrack
+    container_name: bytetrack
+    volumes:
+      - ./videos:/app/videos
+      - ./output:/app/output
+    environment:
+      - INPUT_VIDEO=./videos/cars number plate.mp4
+      - OUTPUT_VIDEO=/output/output.mp4
+    networks:
+      - dev
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [ gpu ]
+
 volumes:
   restreamer-data:
   node_modules:
