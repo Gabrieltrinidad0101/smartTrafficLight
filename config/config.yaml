@@ -26,7 +26,7 @@ record:
 
 cameras:
   carAndMotorAccident:
-    enabled: true
+    enabled: false
     type: lpr
     record:
       enabled: true
@@ -48,7 +48,7 @@ cameras:
       bounding_box: true
 
   LicensePlateRecognition:
-    enabled: true
+    enabled: false
     type: lpr
     record:
       enabled: true
@@ -68,35 +68,57 @@ cameras:
       enabled: true
       timestamp: true
       bounding_box: true
-  
-  # Accident:
-  #   enabled: true
-  #   type: lpr
-  #   ffmpeg:
-  #     inputs:
-  #       - path: rtsp://10.0.0.142:8554/accident
-  #         roles:
-  #           - detect
-  #   detect:
-  #     enabled: true
-  #     width: 1920
-  #     height: 1080
-  #     fps: 10
-  #     min_initialized: 1
-  #   mqtt:
-  #     enabled: true
-  #     timestamp: true
-  #     bounding_box: true
+
+  Accident:
+    enabled: false
+    type: lpr
+    ffmpeg:
+      inputs:
+        - path: rtsp://10.0.0.142:8554/accident
+          roles:
+            - detect
+    detect:
+      enabled: true
+      width: 1920
+      height: 1080
+      fps: 10
+      min_initialized: 1
+    mqtt:
+      enabled: true
+      timestamp: true
+      bounding_box: true
+
+  Person:
+    enabled: true
+    type: lpr
+    face_recognition:
+      enabled: true
+    ffmpeg:
+      inputs:
+        - path: rtsp://10.0.0.142:8554/personWalking
+          roles:
+            - detect
+    detect:
+      enabled: true
+      width: 1280
+      height: 720
+      fps: 10
+      min_initialized: 1
+    mqtt:
+      enabled: true
+      timestamp: true
+      bounding_box: true
 
 detect:
   enabled: true
 
-# go2rtc:
-#   streams:
-#     LicensePlateRecognition:
-#       - rtsp://10.0.0.142:8554/numberplate
-
 face_recognition:
   enabled: true
-  model_size: large
+  model_size: small
 
+semantic_search:
+  enabled: false
+  model_size: small
+classification:
+  bird:
+    enabled: false

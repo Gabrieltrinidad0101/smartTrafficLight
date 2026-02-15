@@ -4,7 +4,7 @@ const FRIGATE_URL = process.env.FRIGATE_URL || 'http://frigate:5000';
 
 export async function updateEvent(eventId, path, data) {
     setTimeout(async () => {
-
+        return
         const endpoint = `${FRIGATE_URL}/api/events/${eventId}/${path}`;
         try {
             const response = await axios.post(endpoint, data);

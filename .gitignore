@@ -47,3 +47,6 @@ docker-compose.override.yml
 node_modules
 apps/traffic-accident-detection/weights
 apps/traffic-accident-detection/*.jpg
+
+# --- Model cache ---
+config/model_cache/

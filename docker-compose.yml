@@ -182,7 +182,6 @@ services:
       - postgres_data:/var/lib/postgresql/data
     networks:
       - dev
-
   # bytetrack:
   #   build:
   #     context: ./apps/bytetrack
