@@ -15,7 +15,7 @@ app.use('/api/notifications', notificationRoutes);
 app.use('/images', express.static('images'));
 
 try {
-    await sequelize.sync(); // Sync database
+    await sequelize.sync({ alter: true }); // Sync database
     console.log("Database connected and synced");
 } catch (error) {
     console.error("Unable to connect to the database:", error);

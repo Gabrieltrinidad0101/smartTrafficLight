@@ -15,6 +15,11 @@ const Notification = sequelize.define('Notification', {
         type: DataTypes.STRING,
         allowNull: true,
     },
+    active: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: true,
+    },
     whatsapps: {
         type: DataTypes.ARRAY(DataTypes.STRING),
         defaultValue: [],

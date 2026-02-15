@@ -75,13 +75,13 @@ services:
 
   nginx:
     image: nginx:alpine
-    container_name: nginx-proxy
+    container_name: nginx
     restart: unless-stopped
     ports:
       - "8080:80"
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./apps/webextention/dist/content.js:/etc/nginx/scripts/content.js:ro
+      - ./apps/app/dist/content.js:/etc/nginx/scripts/content.js:ro
     depends_on:
       - frigate
     networks:
@@ -182,25 +182,25 @@ services:
     networks:
       - dev
 
-  bytetrack:
-    build:
-      context: ./apps/bytetrack
-    container_name: bytetrack
-    volumes:
-      - ./videos:/app/videos
-      - ./output:/app/output
-    environment:
-      - INPUT_VIDEO=./videos/cars number plate.mp4
-      - OUTPUT_VIDEO=/output/output.mp4
-    networks:
-      - dev
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: 1
-              capabilities: [ gpu ]
+  # bytetrack:
+  #   build:
+  #     context: ./apps/bytetrack
+  #   container_name: bytetrack
+  #   volumes:
+  #     - ./videos:/app/videos
+  #     - ./output:/app/output
+  #   environment:
+  #     - INPUT_VIDEO=./videos/cars number plate.mp4
+  #     - OUTPUT_VIDEO=/output/output.mp4
+  #   networks:
+  #     - dev
+  #   deploy:
+  #     resources:
+  #       reservations:
+  #         devices:
+  #           - driver: nvidia
+  #             count: 1
+  #             capabilities: [ gpu ]
 
 volumes:
   restreamer-data:

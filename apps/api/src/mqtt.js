@@ -21,19 +21,20 @@ class FrigateLPRBridge {
     this.client.on('message', async (topic, message) => {
       try {
         const data = JSON.parse(message.toString())
-
+        deleteEvent(data.id)
         if (data?.plate) {
-          const entity = await Notification.findOne({ where: { name: data.plate, type: 'plate' } })
+          const entity = await Notification.findOne({ where: { name: data.plate, type: 'plate', active: true } })
 
           if (entity) {
             await createEvent(data.camera, 'vehiculo desaparecido', data.plate)
             this.sendWhatsAppAlerts('plate', data.plate, data.camera, entity.whatsapps)
           }
-          deleteEvent(data.id)
         } else if (data?.after?.label === 'person' && data.after.sub_label) {
           const personName = data.after.sub_label;
           const cameraName = data.after.camera;
-          const entity = await Notification.findOne({ where: { name: personName, type: 'person' } });
+          console.log("person")
+          console.log({personName,cameraName})
+          const entity = await Notification.findOne({ where: { name: personName, type: 'person', active: true } });
 
           if (entity) {
             await createEvent(cameraName, 'persona buscada encontrada', personName);

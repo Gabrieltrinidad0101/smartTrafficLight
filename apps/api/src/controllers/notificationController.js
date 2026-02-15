@@ -11,8 +11,8 @@ const client = twilio(accountSid, authToken);
 
 export const createNotification = async (req, res) => {
     try {
-        const { name, type, description, whatsapps } = req.body;
-        const notification = await Notification.create({ name, type, description, whatsapps });
+        const { name, type, description, active, whatsapps } = req.body;
+        const notification = await Notification.create({ name, type, description, active, whatsapps });
         res.status(201).json(notification);
     } catch (error) {
         res.status(400).json({ error: error.message });
@@ -44,14 +44,15 @@ export const getNotification = async (req, res) => {
 export const updateNotification = async (req, res) => {
     try {
         const { id } = req.params;
-        const { name, type, description, whatsapps } = req.body;
+        const { name, type, description, active, whatsapps } = req.body;
         const notification = await Notification.findByPk(id);
         if (!notification) return res.status(404).json({ error: 'Notification not found' });
 
-        notification.name = name || notification.name;
-        notification.type = type || notification.type;
-        notification.description = description || notification.description;
-        notification.whatsapps = whatsapps || notification.whatsapps;
+        if (name !== undefined) notification.name = name;
+        if (type !== undefined) notification.type = type;
+        if (description !== undefined) notification.description = description;
+        if (active !== undefined) notification.active = active;
+        if (whatsapps !== undefined) notification.whatsapps = whatsapps;
 
         await notification.save();
         res.status(200).json(notification);
