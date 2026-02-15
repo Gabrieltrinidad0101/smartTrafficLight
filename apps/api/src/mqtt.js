@@ -46,12 +46,6 @@ class FrigateLPRBridge {
     })
   }
 
-  handleFrigateEvent(eventData) {
-    if (eventData.after?.label === 'license_plate') {
-      // console.log('Frigate detectó placa:', eventData.after.recognized_license_plate)
-    }
-  }
-
   async sendWhatsAppAlerts(type, name, cameraName, whatsapps) {
     if (!whatsapps || whatsapps.length === 0) {
       console.log(`No WhatsApp numbers registered for ${type} ${name}`);
@@ -64,14 +58,6 @@ class FrigateLPRBridge {
     }
   }
 
-  calculateDefaultBox(cameraName) {
-    const defaults = {
-      'gate_camera': [100, 100, 200, 150],
-      'entrance_camera': [50, 50, 150, 120],
-      'exit_camera': [80, 80, 180, 140]
-    }
-    return defaults[cameraName] || [0, 0, 100, 100]
-  }
 }
 
 const bridge = new FrigateLPRBridge()
