@@ -58,6 +58,7 @@ export async function deleteEvent(eventId, options = {}) {
 const THREE_HOURS = 3 * 60 * 60 * 1000;
 
 async function deleteAllEvents() {
+    return
     try {
         const response = await axios.get(`${FRIGATE_URL}/api/events`);
         const events = response.data;

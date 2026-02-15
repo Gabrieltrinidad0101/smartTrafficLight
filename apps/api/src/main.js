@@ -3,6 +3,7 @@ import cors from "cors"
 import "./mqtt.js"
 import sequelize from "./config/db.js"
 import notificationRoutes from "./routes/notificationRoutes.js"
+import notificationSentRoutes from "./routes/notificationSentRoutes.js"
 import morgan from "morgan"
 
 const app = express();
@@ -12,6 +13,7 @@ app.use(express.json());
 app.use(morgan("dev"));
 
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/notifications-sent', notificationSentRoutes);
 app.use('/images', express.static('images'));
 
 try {

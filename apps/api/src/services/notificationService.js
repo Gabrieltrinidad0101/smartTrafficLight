@@ -1,4 +1,5 @@
 import twilio from 'twilio';
+import NotificationSent from '../models/NotificationSent.js';
 
 const accountSid = process.env.ACCOUNT_SID;
 const authToken = process.env.AUTH_TOKEN;
@@ -29,6 +30,9 @@ export const sendAlert = async (type, name, cameraName, toNumber) => {
             body: message
         });
         console.log(`✅ WhatsApp alert sent to ${toNumber}: ${response.sid}`);
+
+        await NotificationSent.create({ type, name, camera: cameraName, toNumber, message, status: 'sent' });
+
         return response;
     } catch (error) {
         console.warn(`⚠️ Error sending custom message to ${toNumber}, trying template: ${error.message}`);
@@ -43,9 +47,14 @@ export const sendAlert = async (type, name, cameraName, toNumber) => {
                 to: toNumber
             });
             console.log(`✅ Template alert sent to ${toNumber}: ${response.sid}`);
+
+            await NotificationSent.create({ type, name, camera: cameraName, toNumber, message, status: 'sent' });
+
             return response;
         } catch (templateError) {
             console.error(`❌ Failed to send WhatsApp to ${toNumber}:`, templateError.message);
+
+            await NotificationSent.create({ type, name, camera: cameraName, toNumber, message, status: 'failed' });
         }
     }
 };

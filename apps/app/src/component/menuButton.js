@@ -12,6 +12,7 @@ export function addMenuButton({ svg, onclick }) {
     // Create link (a tag)
     const link = document.createElement('a');
     link.setAttribute('aria-current', 'page');
+    link.setAttribute("style","padding: 3.5px;")
     link.className = "flex flex-col items-center justify-center rounded-lg mx-[10px] mb-4 font-bold text-white bg-selected hover:bg-selected/80";
     link.href = "#"; // Prevent navigation or set appropriately
     
