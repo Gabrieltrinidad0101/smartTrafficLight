@@ -10,6 +10,35 @@ const pages = {
     '#notifications-sent': NotificationsSent,
 }
 
+// Replace Frigate logo
+const replaceLogo = () => {
+    const svg = document.querySelector('.flex.w-full.flex-col.items-center.gap-0 > a > svg');
+    if (svg && !svg.dataset.replaced) {
+        const img = document.createElement('img');
+        img.src = '/custom-logo.png';
+        img.style.width = '40px';
+        img.style.height = '40px';
+        img.style.borderRadius = '8px';
+        img.style.marginBottom = '10px'
+        svg.parentNode.replaceChild(img, svg);
+        img.dataset.replaced = 'true';
+    }
+    // Replace favicon
+    let favicon = document.querySelector('link[rel="icon"]') || document.querySelector('link[rel="shortcut icon"]');
+    if (favicon) {
+        favicon.href = '/custom-logo.png';
+    } else {
+        favicon = document.createElement('link');
+        favicon.rel = 'icon';
+        favicon.href = '/custom-logo.png';
+        document.head.appendChild(favicon);
+    }
+    document.title = 'Smart Traffic Light';
+};
+
+setTimeout(replaceLogo, 500);
+new MutationObserver(replaceLogo).observe(document.body, { childList: true, subtree: true });
+
 setTimeout(() => {
     const menuButtons = [
         {

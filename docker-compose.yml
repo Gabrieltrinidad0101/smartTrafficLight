@@ -82,6 +82,7 @@ services:
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./apps/app/dist/content.js:/etc/nginx/scripts/content.js:ro
+      - ./nginx/logo.png:/etc/nginx/logo.png:ro
     depends_on:
       - frigate
     networks:
