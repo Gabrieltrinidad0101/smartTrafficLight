@@ -1,3 +1,4 @@
+import Notification from '../models/Notification.js';
 import twilio from 'twilio';
 
 const accountSid = process.env.ACCOUNT_SID;
@@ -8,13 +9,76 @@ const contentSid = process.env.CONTENT_SID;
 
 const client = twilio(accountSid, authToken);
 
+export const createNotification = async (req, res) => {
+    try {
+        const { name, type, description, whatsapps } = req.body;
+        const notification = await Notification.create({ name, type, description, whatsapps });
+        res.status(201).json(notification);
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+};
+
+export const getAllNotifications = async (req, res) => {
+    try {
+        const { type } = req.query;
+        const where = type ? { type } : {};
+        const notifications = await Notification.findAll({ where });
+        return res.status(200).json(notifications);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+export const getNotification = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const notification = await Notification.findByPk(id);
+        if (!notification) return res.status(404).json({ error: 'Notification not found' });
+        res.status(200).json(notification);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+export const updateNotification = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { name, type, description, whatsapps } = req.body;
+        const notification = await Notification.findByPk(id);
+        if (!notification) return res.status(404).json({ error: 'Notification not found' });
+
+        notification.name = name || notification.name;
+        notification.type = type || notification.type;
+        notification.description = description || notification.description;
+        notification.whatsapps = whatsapps || notification.whatsapps;
+
+        await notification.save();
+        res.status(200).json(notification);
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+};
+
+export const deleteNotification = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const notification = await Notification.findByPk(id);
+        if (!notification) return res.status(404).json({ error: 'Notification not found' });
+
+        await notification.destroy();
+        res.status(204).send();
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
 export const sendAccidentNotification = async (req, res) => {
     try {
         let { message } = req.body;
 
         console.log(`Sending WhatsApp notification to ${toNumber}...`);
 
-        // Use custom message body for Spanish text
         const spanishMessage = `⚠️ *ALERTA DE ACCIDENTE* ⚠️\n\nSe ha detectado un posible accidente de tráfico.\nFecha: ${date}\nHora: ${time}\n\nPor favor verifique la situación.`;
 
         try {
@@ -31,8 +95,6 @@ export const sendAccidentNotification = async (req, res) => {
 
         } catch (error) {
             console.log("Error sending custom message, falling back to template if applicable or logging error: " + error.message);
-            // If custom message fails (e.g. outside 24h window), try template as fallback
-            // Note: Template doesn't support custom text easily without changing variables
             const contentVariables = JSON.stringify({
                 "1": date,
                 "2": time

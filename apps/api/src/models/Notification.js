@@ -1,11 +1,15 @@
 import { DataTypes } from 'sequelize';
 import sequelize from '../config/db.js';
 
-const RegisteredPlate = sequelize.define('RegisteredPlate', {
-    number: {
+const Notification = sequelize.define('Notification', {
+    name: {
         type: DataTypes.STRING,
         allowNull: false,
         unique: true,
+    },
+    type: {
+        type: DataTypes.ENUM('plate', 'person'),
+        allowNull: false,
     },
     description: {
         type: DataTypes.STRING,
@@ -19,4 +23,4 @@ const RegisteredPlate = sequelize.define('RegisteredPlate', {
     timestamps: true,
 });
 
-export default RegisteredPlate;
+export default Notification;

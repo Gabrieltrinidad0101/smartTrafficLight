@@ -7,12 +7,20 @@ const contentSid = process.env.CONTENT_SID;
 
 const client = twilio(accountSid, authToken);
 
-export const sendPlateAlert = async (plate, toNumber) => {
+const buildMessage = (type, name, cameraName) => {
     const timestamp = new Date();
     const date = timestamp.toLocaleDateString('es-ES');
     const time = timestamp.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
 
-    const message = `⚠️ *VEHÍCULO DESAPARECIDO DETECTADO* ⚠️\n\nSe ha detectado la placa: *${plate}*\nFecha: ${date}\nHora: ${time}\n\nPor favor verifique.`;
+    if (type === 'plate') {
+        return `⚠️ *VEHÍCULO DESAPARECIDO DETECTADO* ⚠️\n\nSe ha detectado la placa: *${name}*\nFecha: ${date}\nHora: ${time}\n\nPor favor verifique.`;
+    }
+
+    return `⚠️ *PERSONA BUSCADA ENCONTRADA* ⚠️\n\nSe ha encontrado a: *${name}*\nCámara: ${cameraName}\nFecha: ${date}\nHora: ${time}\n\nPor favor verifique.`;
+};
+
+export const sendAlert = async (type, name, cameraName, toNumber) => {
+    const message = buildMessage(type, name, cameraName);
 
     try {
         const response = await client.messages.create({
