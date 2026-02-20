@@ -95,7 +95,7 @@ cameras:
       enabled: true
     ffmpeg:
       inputs:
-        - path: rtsp://10.0.0.142:8554/personWalking
+        - path: rtsp://gabriel:camara2026@10.0.0.134:554/Preview_01_main
           roles:
             - detect
     detect:
