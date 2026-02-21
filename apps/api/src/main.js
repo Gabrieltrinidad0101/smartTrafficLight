@@ -5,6 +5,7 @@ import sequelize from "./config/db.js"
 import notificationRoutes from "./routes/notificationRoutes.js"
 import notificationSentRoutes from "./routes/notificationSentRoutes.js"
 import morgan from "morgan"
+import { getFaceNames } from "./frigateApi.js"
 
 const app = express();
 
@@ -15,6 +16,11 @@ app.use(morgan("dev"));
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/notifications-sent', notificationSentRoutes);
 app.use('/images', express.static('images'));
+
+app.get('/api/faces', async (req, res) => {
+    const names = await getFaceNames();
+    res.json(names);
+});
 
 try {
     await sequelize.sync({ alter: true }); // Sync database

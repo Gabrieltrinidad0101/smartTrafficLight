@@ -53,7 +53,6 @@ export const sendAlert = async (type, name, cameraName, toNumber) => {
             return response;
         } catch (templateError) {
             console.error(`❌ Failed to send WhatsApp to ${toNumber}:`, templateError.message);
-
             await NotificationSent.create({ type, name, camera: cameraName, toNumber, message, status: 'failed' });
         }
     }

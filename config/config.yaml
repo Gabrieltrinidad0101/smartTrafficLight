@@ -5,6 +5,22 @@ mqtt:
 
 version: 0.16-0
 
+detectors:
+  onnx:
+    type: onnx
+
+model:
+  model_type: yolo-generic
+  width: 320
+  height: 320
+  input_tensor: nchw
+  input_dtype: float
+  path: /config/model_cache/onnx/yolov9c.onnx
+  labelmap_path: /labelmap/coco-80.txt
+
+ffmpeg:
+  hwaccel_args: preset-nvidia-h264
+
 lpr:
   enabled: true
   model_size: large

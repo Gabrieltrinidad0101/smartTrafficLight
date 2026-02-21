@@ -50,3 +50,6 @@ apps/traffic-accident-detection/*.jpg
 
 # --- Model cache ---
 config/model_cache/
+
+# --- ONVIF ---
+onvif_env

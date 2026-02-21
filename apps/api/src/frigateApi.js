@@ -17,6 +17,19 @@ export async function updateEvent(eventId, path, data) {
     }, 3000)
 }
 
+export async function getFaceNames() {
+    const endpoint = `${FRIGATE_URL}/api/faces`;
+    try {
+        const response = await axios.get(endpoint);
+        const faces = response.data;
+        const names = Object.keys(faces);
+        return names;
+    } catch (error) {
+        console.error('❌ Error fetching face names from Frigate:', error.message);
+        return [];
+    }
+}
+
 export async function createEvent(camera, label, subLabel) {
     const endpoint = `${FRIGATE_URL}/api/events/${camera}/${label}/create`;
     try {
@@ -58,7 +71,6 @@ export async function deleteEvent(eventId, options = {}) {
 const THREE_HOURS = 3 * 60 * 60 * 1000;
 
 async function deleteAllEvents() {
-    return
     try {
         const response = await axios.get(`${FRIGATE_URL}/api/events`);
         const events = response.data;

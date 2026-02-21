@@ -32,9 +32,7 @@ class FrigateLPRBridge {
         } else if (data?.after?.label === 'person' && data.after.sub_label) {
           const personName = data.after.sub_label;
           const cameraName = data.after.camera;
-          console.log("person")
-          console.log({personName,cameraName})
-          const entity = await Notification.findOne({ where: { name: personName, type: 'person', active: true } });
+          const entity = await Notification.findOne({ where: { name: personName[0], type: 'person', active: true } });
 
           if (entity) {
             await createEvent(cameraName, 'persona buscada encontrada', personName);
