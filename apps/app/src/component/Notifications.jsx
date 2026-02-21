@@ -1,5 +1,8 @@
 import React, { useState, useRef } from 'react';
 import { useNotifications } from '../hooks/useNotifications';
+import { apiRequest } from '../utils/apiRequest';
+
+const FACES_API_URL = 'http://localhost:3000/api/faces';
 
 const LAYOUT_OPTIONS = [
     { value: 'list', label: 'List' },
@@ -33,6 +36,10 @@ const Notifications = () => {
 
     const [layout, setLayout] = useState('list');
 
+    // Faces from Frigate
+    const [faceNames, setFaceNames] = useState([]);
+    const [loadingFaces, setLoadingFaces] = useState(false);
+
     // Create form
     const [newName, setNewName] = useState('');
     const [newType, setNewType] = useState('plate');
@@ -55,7 +62,13 @@ const Notifications = () => {
         closeCreateModal();
     };
 
-    const openCreateModal = () => createModalRef.current?.showModal();
+    const openCreateModal = async () => {
+        createModalRef.current?.showModal();
+        setLoadingFaces(true);
+        const [data] = await apiRequest(FACES_API_URL);
+        setFaceNames(Array.isArray(data) ? data : []);
+        setLoadingFaces(false);
+    };
     const closeCreateModal = () => {
         createModalRef.current?.close();
         setNewName('');
@@ -218,7 +231,7 @@ const Notifications = () => {
                                 className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                                 id="create-type"
                                 value={newType}
-                                onChange={(e) => setNewType(e.target.value)}
+                                onChange={(e) => { setNewType(e.target.value); setNewName(''); }}
                             >
                                 <option value="plate">Plate</option>
                                 <option value="person">Person</option>
@@ -226,15 +239,37 @@ const Notifications = () => {
                         </div>
                         <div className="mb-4">
                             <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="create-name">Name</label>
-                            <input
-                                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                id="create-name"
-                                type="text"
-                                placeholder="Enter plate number or person name"
-                                required
-                                value={newName}
-                                onChange={(e) => setNewName(e.target.value)}
-                            />
+                            {newType === 'person' ? (
+                                loadingFaces ? (
+                                    <p className="text-sm text-gray-500">Loading faces...</p>
+                                ) : (
+                                    <select
+                                        className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                        id="create-name"
+                                        required
+                                        value={newName}
+                                        onChange={(e) => setNewName(e.target.value)}
+                                    >
+                                        <option value="">Select a face</option>
+                                        {faceNames
+                                            .filter(name => !notifications.some(n => n.type === 'person' && n.name === name))
+                                            .map(name => (
+                                                <option key={name} value={name}>{name}</option>
+                                            ))
+                                        }
+                                    </select>
+                                )
+                            ) : (
+                                <input
+                                    className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                    id="create-name"
+                                    type="text"
+                                    placeholder="Enter plate number"
+                                    required
+                                    value={newName}
+                                    onChange={(e) => setNewName(e.target.value)}
+                                />
+                            )}
                         </div>
                         <div className="mb-6">
                             <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="create-description">Description</label>

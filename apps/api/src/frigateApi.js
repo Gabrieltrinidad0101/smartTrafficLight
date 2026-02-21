@@ -23,7 +23,8 @@ export async function getFaceNames() {
         const response = await axios.get(endpoint);
         const faces = response.data;
         const names = Object.keys(faces);
-        return names;
+
+        return names.filter(name => name !== 'train');
     } catch (error) {
         console.error('❌ Error fetching face names from Frigate:', error.message);
         return [];
@@ -97,12 +98,10 @@ deleteAllEvents();
 
 function handleError(error, eventId) {
     if (error.response) {
-        // Server responded with error status
         console.error(`❌ Failed to event ${eventId}:`);
         console.error(`   Status: ${error.response.status}`);
         console.error(`   Message: ${error.response.data?.message || 'No additional info'}`);
 
-        // Common errors
         if (error.response.status === 404) {
             console.error(`   → Event ${eventId} not found. It may have been deleted already.`);
         } else if (error.response.status === 400) {
@@ -111,11 +110,9 @@ function handleError(error, eventId) {
             console.error(`   → Frigate server error. Check Frigate logs.`);
         }
     } else if (error.request) {
-        // No response received
         console.error(`❌ No response from Frigate server at ${FRIGATE_URL}`);
         console.error(`   → Check if Frigate is running and accessible.`);
     } else {
-        // Setup error
         console.error(`❌ Request setup error:`, error.message);
     }
 }
